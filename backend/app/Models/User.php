@@ -24,11 +24,18 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
+
+public function requirements()
+{
+    return $this->hasMany(Requirement::class, 'applicant_id');
+}
+
+public function interviews()
+{
+    return $this->hasMany(Interview::class, 'applicant_id');
+}
 }

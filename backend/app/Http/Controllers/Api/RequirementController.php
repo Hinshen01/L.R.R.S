@@ -1,49 +1,35 @@
 <?php
-
 namespace App\Http\Controllers\Api;
-
 use App\Http\Controllers\Controller;
+use App\Models\Requirement;
 use Illuminate\Http\Request;
 
 class RequirementController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        return $request->user()->requirements()->latest()->get();
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'document_name' => 'required|string',
+            'status' => 'required|in:submitted,missing,expiring_soon',
+            'expiration_date' => 'nullable|date',
+        ]);
+        return $request->user()->requirements()->create($request->all());
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function update(Request $request, Requirement $requirement)
     {
-        //
+        $requirement->update($request->all());
+        return $requirement;
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(Requirement $requirement)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $requirement->delete();
+        return response()->json(['message' => 'Deleted']);
     }
 }

@@ -62,4 +62,18 @@ class AuthController extends Controller
     {
         return response()->json($request->user());
     }
+
+    public function updateProfile(Request $request)
+{
+    $user = $request->user();
+    $user->update($request->only(['name', 'email', 'contact_number', 'address']));
+    return response()->json($user);
+}
+
+public function updatePassword(Request $request)
+{
+    $request->validate(['password' => 'required|min:6']);
+    $request->user()->update(['password' => Hash::make($request->password)]);
+    return response()->json(['message' => 'Password updated']);
+}
 }

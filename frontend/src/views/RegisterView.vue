@@ -28,12 +28,12 @@
 
         <div class="field">
           <label>Full Name</label>
-          <input v-model="form.full_name" type="text" placeholder="Juan dela Cruz" />
+          <input v-model="form.full_name" type="text" placeholder="Your Name" />
         </div>
 
         <div class="field">
           <label>Email</label>
-          <input v-model="form.email" type="email" placeholder="your@email.com" />
+          <input v-model="form.email" type="email" placeholder="example@gmail.com" />
         </div>
 
         <div class="field">

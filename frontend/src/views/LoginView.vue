@@ -26,7 +26,7 @@
           <label>Email Address</label>
           <div class="input-wrap">
             <span class="icon">✉️</span>
-            <input v-model="form.email" type="email" placeholder="your@email.com" />
+            <input v-model="form.email" type="email" placeholder="example@gmail.com" />
           </div>
         </div>
 
@@ -34,7 +34,7 @@
           <label>Password</label>
           <div class="input-wrap">
             <span class="icon">🔒</span>
-            <input v-model="form.password" :type="showPass ? 'text' : 'password'" placeholder="••••••••" />
+            <input v-model="form.password" :type="showPass ? 'text' : 'password'" placeholder="Min. 8 characters" />
             <span class="toggle" @click="showPass = !showPass">{{ showPass ? '🙈' : '👁️' }}</span>
           </div>
         </div>

@@ -1,49 +1,36 @@
 <?php
-
 namespace App\Http\Controllers\Api;
-
 use App\Http\Controllers\Controller;
+use App\Models\Interview;
 use Illuminate\Http\Request;
 
 class InterviewController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        return $request->user()->interviews()->latest()->get();
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'interview_date' => 'required|date',
+            'company_name' => 'required|string',
+            'venue' => 'required|string',
+            'status' => 'required|in:scheduled,completed,cancelled',
+        ]);
+        return $request->user()->interviews()->create($request->all());
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function update(Request $request, Interview $interview)
     {
-        //
+        $interview->update($request->all());
+        return $interview;
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(Interview $interview)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $interview->delete();
+        return response()->json(['message' => 'Deleted']);
     }
 }
