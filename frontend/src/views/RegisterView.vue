@@ -24,47 +24,73 @@
       </div>
 
       <div class="form-box">
-        <h2>Create account</h2>
-
-        <div class="field">
-          <label>Full Name</label>
-          <input v-model="form.full_name" type="text" placeholder="Your Name" />
-        </div>
-
-        <div class="field">
-          <label>Email</label>
-          <input v-model="form.email" type="email" placeholder="example@gmail.com" />
-        </div>
-
-        <div class="field">
-          <label>Contact Number</label>
-          <input
-            v-model="form.contact_number"
-            type="text"
-            placeholder="09XXXXXXXXX"
-            maxlength="11"
-            @input="form.contact_number = form.contact_number.replace(/\D/g, '').slice(0, 11)"
-          />
-        </div>
-
-        <div class="field">
-          <label>Address</label>
-          <input v-model="form.address" type="text" placeholder="Barangay, City" />
-        </div>
-
-        <div class="field">
-          <label>Password</label>
-          <div class="input-wrap">
-            <input v-model="form.password" :type="showPass ? 'text' : 'password'" placeholder="••••••••••••" />
-            <span class="toggle" @click="showPass = !showPass">{{ showPass ? '⊘' : '👁' }}</span>
+        <!-- Success Animation -->
+        <div v-if="showSuccess" class="success-container">
+          <div class="checkmark-circle">
+            <svg class="checkmark-icon" viewBox="0 0 52 52">
+              <circle class="checkmark-circle-bg" cx="26" cy="26" r="25" fill="none" />
+              <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.1 16.7-16.7" />
+            </svg>
           </div>
+          <h2 class="success-title">Account Created!</h2>
+          <p class="success-message">Your account has been successfully created.</p>
+          <p class="success-redirect">Redirecting to login page...</p>
         </div>
 
-        <p v-if="error" class="error">{{ error }}</p>
+        <!-- Form -->
+        <template v-else>
+          <h2>Create account</h2>
 
-        <button @click="register" :disabled="loading">
-          {{ loading ? 'Creating account...' : 'Sign up' }}
-        </button>
+          <div class="field">
+            <label>Full Name</label>
+            <input v-model="form.full_name" type="text" placeholder="Your Name" />
+          </div>
+
+          <div class="field">
+            <label>Email</label>
+            <input v-model="form.email" type="email" placeholder="example@gmail.com" />
+          </div>
+
+          <div class="field">
+            <label>Contact Number</label>
+            <input
+              v-model="form.contact_number"
+              type="text"
+              placeholder="09XXXXXXXXX"
+              maxlength="11"
+              @input="form.contact_number = form.contact_number.replace(/\D/g, '').slice(0, 11)"
+            />
+          </div>
+
+          <div class="field">
+            <label>Address</label>
+            <input v-model="form.address" type="text" placeholder="Barangay, City" />
+          </div>
+
+          <div style="display: flex; gap: 1rem;">
+            <div class="field" style="flex: 1;">
+              <label>Password</label>
+              <div class="input-wrap">
+                <input v-model="form.password" :type="showPass ? 'text' : 'password'" placeholder="Min. 8 characters" />
+                <span class="toggle" @click="showPass = !showPass">{{ showPass ? '⊘' : '👁' }}</span>
+              </div>
+            </div>
+
+            <div class="field" style="flex: 1;">
+              <label>Confirm Password</label>
+              <div class="input-wrap">
+                <input v-model="form.password_confirmation" :type="showPass ? 'text' : 'password'" placeholder="Repeat password" />
+                <span class="toggle" @click="showPass = !showPass">{{ showPass ? '⊘' : '👁' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <p v-if="error" class="error">{{ error }}</p>
+
+          <button @click="register" :disabled="loading">
+            {{ loading ? 'Creating account...' : 'Sign up' }}
+          </button>
+        </template>
       </div>
     </div>
 
@@ -79,17 +105,27 @@ const router = useRouter()
 const loading = ref(false)
 const error = ref('')
 const showPass = ref(false)
+const showSuccess = ref(false)
 const form = ref({
   full_name: '',
   email: '',
   contact_number: '',
   address: '',
-  password: ''
+  password: '',
+  password_confirmation: ''
 })
 
 async function register() {
   loading.value = true
   error.value = ''
+  
+  // Client-side validation
+  if (form.value.password !== form.value.password_confirmation) {
+    error.value = 'Passwords do not match'
+    loading.value = false
+    return
+  }
+  
   try {
     const res = await fetch('http://localhost:8000/api/register', {
       method: 'POST',
@@ -100,7 +136,14 @@ async function register() {
     if (!res.ok) throw new Error(data.message || 'Registration failed')
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))
-    router.push('/dashboard')
+    
+    // Show success animation
+    showSuccess.value = true
+    
+    // Redirect to login after 2 seconds
+    setTimeout(() => {
+      router.push('/login')
+    }, 2000)
   } catch (e) {
     error.value = e.message
   } finally {
@@ -289,5 +332,118 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   padding: 8px 12px;
   border-radius: 6px;
   margin-bottom: 0.8rem;
+}
+
+/* Success Animation */
+.success-container {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.checkmark-circle {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  animation: scaleIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.checkmark-icon {
+  width: 100%;
+  height: 100%;
+}
+
+.checkmark-circle-bg {
+  stroke: #1a7a5e;
+  stroke-width: 2;
+  animation: drawCircle 0.6s ease-in-out forwards;
+}
+
+.checkmark-check {
+  stroke: #1a7a5e;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: drawCheck 0.6s ease-in-out 0.3s forwards;
+  opacity: 0;
+}
+
+.success-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1a7a5e;
+  margin-bottom: 0.5rem;
+  animation: slideUp 0.5s ease-out 0.2s backwards;
+}
+
+.success-message {
+  font-size: 0.95rem;
+  color: #555;
+  margin-bottom: 0.5rem;
+  animation: slideUp 0.5s ease-out 0.3s backwards;
+}
+
+.success-redirect {
+  font-size: 0.85rem;
+  color: #888;
+  animation: slideUp 0.5s ease-out 0.4s backwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes drawCircle {
+  from {
+    stroke-dasharray: 157;
+    stroke-dashoffset: 157;
+  }
+  to {
+    stroke-dasharray: 157;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes drawCheck {
+  from {
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    opacity: 0;
+  }
+  to {
+    stroke-dasharray: 48;
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>

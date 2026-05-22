@@ -34,7 +34,7 @@
           <label>Password</label>
           <div class="input-wrap">
             <span class="icon">🔒</span>
-            <input v-model="form.password" :type="showPass ? 'text' : 'password'" placeholder="Min. 8 characters" />
+            <input v-model="form.password" :type="showPass ? 'text' : 'password'" placeholder="********" />
             <span class="toggle" @click="showPass = !showPass">{{ showPass ? '⊘' : '👁' }}</span>
           </div>
         </div>
