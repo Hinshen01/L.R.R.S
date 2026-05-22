@@ -34,7 +34,7 @@ return new class extends Migration
             // Copy data
             DB::statement('
                 INSERT INTO requirements_new (id, user_id, document_name, status, file_path, expiration_date, created_at, updated_at)
-                SELECT id, applicant_id, document_name, status, file_path, expiration_date, created_at, updated_at FROM requirements
+                SELECT id, applicant_id, document_name, status, file_path, NULL, created_at, updated_at FROM requirements
             ');
             
             // Drop old table and rename new one
@@ -94,7 +94,7 @@ return new class extends Migration
             
             DB::statement('
                 INSERT INTO requirements_new (id, applicant_id, document_name, status, file_path, expiration_date, created_at, updated_at)
-                SELECT id, user_id, document_name, status, file_path, expiration_date, created_at, updated_at FROM requirements
+                SELECT id, user_id, document_name, status, file_path, NULL, created_at, updated_at FROM requirements
             ');
             
             DB::statement('DROP TABLE requirements');
