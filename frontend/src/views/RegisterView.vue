@@ -60,14 +60,9 @@
           </div>
         </div>
 
-        <div class="checkbox">
-          <input type="checkbox" id="terms" v-model="agreed" />
-          <label for="terms">I accept the <a href="#">terms of the agreement</a></label>
-        </div>
-
         <p v-if="error" class="error">{{ error }}</p>
 
-        <button @click="register" :disabled="loading || !agreed">
+        <button @click="register" :disabled="loading">
           {{ loading ? 'Creating account...' : 'Sign up' }}
         </button>
       </div>
@@ -84,7 +79,6 @@ const router = useRouter()
 const loading = ref(false)
 const error = ref('')
 const showPass = ref(false)
-const agreed = ref(false)
 const form = ref({
   full_name: '',
   email: '',
@@ -272,18 +266,6 @@ async function register() {
 .input-wrap input { border: none; padding-right: 0; }
 .toggle { cursor: pointer; font-size: 1rem; margin-left: 8px; }
 
-.checkbox {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0.8rem 0 1rem;
-  font-size: 0.85rem;
-  color: #555;
-}
-.checkbox a { color: #1a7a5e; text-decoration: none; }
-.checkbox a:hover { text-decoration: underline; }
-.checkbox input[type="checkbox"] { width: 16px; height: 16px; accent-color: #1a7a5e; }
-
 button {
   width: 100%;
   padding: 13px;
@@ -296,7 +278,7 @@ button {
   cursor: pointer;
   transition: background 0.2s, transform 0.1s;
 }
-button:hover { background: #3333d1; }
+button:hover { background: #155f49; }
 button:active { transform: scale(0.98); }
 button:disabled { opacity: 0.55; cursor: not-allowed; }
 

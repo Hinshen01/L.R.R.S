@@ -59,25 +59,19 @@
             <thead>
               <tr>
                 <th>Document</th>
-                <th>Status</th>
-                <th>Expiration Date</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="req in filteredReqs" :key="req.id">
                 <td>{{ req.document_name }}</td>
-                <td>
-                  <span :class="['badge', req.status]">{{ formatStatus(req.status) }}</span>
-                </td>
-                <td>{{ req.expiration_date ? formatDate(req.expiration_date) : '—' }}</td>
                 <td class="actions">
                   <button class="btn-edit" @click="openModal(req)">✏️ Edit</button>
                   <button class="btn-delete" @click="deleteReq(req.id)">🗑️ Delete</button>
                 </td>
               </tr>
               <tr v-if="filteredReqs.length === 0">
-                <td colspan="4" class="empty">No requirements found.</td>
+                <td colspan="2" class="empty">No requirements found.</td>
               </tr>
             </tbody>
           </table>
@@ -106,24 +100,17 @@
         </div>
 
         <div class="field">
-          <label>Status</label>
-          <select v-model="form.status">
-            <option value="missing">Missing</option>
-            <option value="submitted">Submitted</option>
-            <option value="expiring_soon">Expiring Soon</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Expiration Date <span class="optional">(optional)</span></label>
-          <input type="date" v-model="form.expiration_date" />
+          <label>Upload File <span class="optional">(required)</span></label>
+          <input type="file" @change="handleFileUpload" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif" />
+          <p class="file-hint">Supported: PDF, DOC, DOCX, JPG, PNG, GIF (Max 10MB)</p>
+          <p v-if="form.file" class="file-selected">✓ {{ form.file.name }}</p>
         </div>
 
         <p v-if="error" class="error">{{ error }}</p>
 
         <div class="modal-btns">
           <button class="btn-outline" @click="closeModal">Cancel</button>
-          <button class="btn-primary" @click="saveReq" :disabled="saving">
+          <button class="btn-primary" @click="saveReq" :disabled="saving || !form.document_name || (!form.file && !editMode)">
             {{ saving ? 'Saving...' : (editMode ? 'Update' : 'Add') }}
           </button>
         </div>
@@ -150,7 +137,7 @@ const editMode = ref(false)
 const editId = ref(null)
 const error = ref('')
 
-const form = ref({ document_name: '', status: 'missing', expiration_date: '' })
+const form = ref({ document_name: '', file: null })
 
 onMounted(async () => {
   const stored = localStorage.getItem('user')
@@ -187,21 +174,34 @@ function openModal(req = null) {
     editId.value = req.id
     form.value = {
       document_name: req.document_name,
-      status: req.status,
-      expiration_date: req.expiration_date || ''
+      file: null
     }
   } else {
     editMode.value = false
     editId.value = null
-    form.value = { document_name: '', status: 'missing', expiration_date: '' }
+    form.value = { document_name: '', file: null }
   }
   showModal.value = true
+}
+
+function handleFileUpload(e) {
+  const file = e.target.files[0]
+  if (file) {
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    if (file.size > maxSize) {
+      error.value = 'File size must be less than 10MB'
+      return
+    }
+    form.value.file = file
+    error.value = ''
+  }
 }
 
 function closeModal() { showModal.value = false }
 
 async function saveReq() {
   if (!form.value.document_name) { error.value = 'Please select a document.'; return }
+  if (!form.value.file && !editMode.value) { error.value = 'Please upload a file.'; return }
   saving.value = true
   error.value = ''
   try {
@@ -210,12 +210,20 @@ async function saveReq() {
       ? `http://localhost:8000/api/requirements/${editId.value}`
       : 'http://localhost:8000/api/requirements'
     const method = editMode.value ? 'PUT' : 'POST'
+    
+    const formData = new FormData()
+    formData.append('document_name', form.value.document_name)
+    if (form.value.file) {
+      formData.append('file', form.value.file)
+    }
+    
     const res = await fetch(url, {
       method,
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify(form.value)
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+      body: formData
     })
-    if (!res.ok) throw new Error('Failed to save')
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.message || 'Failed to save')
     await fetchRequirements()
     closeModal()
   } catch (e) {
@@ -244,16 +252,6 @@ const filteredReqs = computed(() =>
     r.document_name.toLowerCase().includes(search.value.toLowerCase())
   )
 )
-
-function formatStatus(s) {
-  if (s === 'submitted') return 'Submitted'
-  if (s === 'expiring_soon') return 'Expiring Soon'
-  return 'Missing'
-}
-
-function formatDate(d) {
-  return new Date(d).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })
-}
 
 function logout() {
   localStorage.removeItem('token')
@@ -303,7 +301,6 @@ td { padding: 12px; font-size: 0.88rem; color: #333; border-bottom: 1px solid #f
 .badge { font-size: 0.72rem; padding: 4px 10px; border-radius: 20px; font-weight: 500; }
 .badge.submitted { background: #e8f5e9; color: #1a7a5e; }
 .badge.missing { background: #fde8e8; color: #c0392b; }
-.badge.expiring_soon { background: #fef3e2; color: #e67e22; }
 .actions { display: flex; gap: 6px; }
 .btn-edit { padding: 5px 10px; background: #e8f4fd; color: #2980b9; border: none; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
 .btn-delete { padding: 5px 10px; background: #fde8e8; color: #c0392b; border: none; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
@@ -315,7 +312,10 @@ td { padding: 12px; font-size: 0.88rem; color: #333; border-bottom: 1px solid #f
 .field label { display: block; font-size: 0.83rem; font-weight: 600; color: #444; margin-bottom: 5px; }
 .field input, .field select { width: 100%; padding: 10px 12px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 0.93rem; outline: none; }
 .field input:focus, .field select:focus { border-color: #1a7a5e; }
-.optional { color: #aaa; font-weight: 400; }
+.field input[type="file"] { border: 1.5px solid #ddd; border-radius: 8px; padding: 8px; cursor: pointer; }
+.field input[type="file"]::file-selector-button { background: #f0faf6; color: #1a7a5e; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 0.82rem; }
+.file-hint { font-size: 0.75rem; color: #999; margin-top: 4px; }
+.file-selected { font-size: 0.82rem; color: #1a7a5e; margin-top: 6px; font-weight: 500; }
 .modal-btns { display: flex; gap: 10px; margin-top: 1.5rem; }
 .modal-btns .btn-outline, .modal-btns .btn-primary { flex: 1; padding: 11px; }
 .error { color: #c0392b; font-size: 0.83rem; background: #fde8e8; padding: 8px 12px; border-radius: 8px; margin-bottom: 0.8rem; }

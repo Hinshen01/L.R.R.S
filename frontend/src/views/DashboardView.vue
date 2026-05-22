@@ -82,10 +82,6 @@
             <h1>Dashboard</h1>
             <p class="page-sub">Track and manage your employment requirements.</p>
           </div>
-          <div class="header-btns">
-            <button class="btn-primary" @click="goToRequirements">+ Add Requirement</button>
-            <button class="btn-outline" @click="goToInterviews">View Interviews</button>
-          </div>
         </div>
 
         <!-- STAT CARDS -->
@@ -108,14 +104,6 @@
           </div>
           <div class="stat-card">
             <div class="stat-top">
-              <p class="stat-label">Expiring Soon</p>
-              <span class="stat-arrow">↗</span>
-            </div>
-            <p class="stat-value">{{ expiring }}</p>
-            <p class="stat-note">⚠️ Within 7 days</p>
-          </div>
-          <div class="stat-card">
-            <div class="stat-top">
               <p class="stat-label">Upcoming Interviews</p>
               <span class="stat-arrow">↗</span>
             </div>
@@ -131,13 +119,13 @@
           <div class="card req-card">
             <div class="card-header">
               <h2>Requirement Status</h2>
-              <RouterLink to="/requirements" class="see-all">See all →</RouterLink>
+              <RouterLink to="/requirements" class="see-all">See all </RouterLink>
             </div>
             <div v-if="loadingReqs" class="loading">Loading...</div>
             <ul class="req-list" v-else>
               <li v-for="req in filteredRequirements" :key="req.id" class="req-item">
                 <span class="req-icon">
-                  {{ req.status === 'submitted' ? '✅' : req.status === 'expiring_soon' ? '⚠️' : '❌' }}
+                  {{ req.status === 'submitted' ? '✅' : '❌' }}
                 </span>
                 <span class="req-name">{{ req.document_name }}</span>
                 <span :class="['badge', req.status]">{{ formatStatus(req.status) }}</span>
@@ -150,7 +138,7 @@
           <div class="card interview-card">
             <div class="card-header">
               <h2>Upcoming Interview</h2>
-              <RouterLink to="/interviews" class="see-all">See all →</RouterLink>
+              <RouterLink to="/interviews" class="see-all">See all </RouterLink>
             </div>
             <div v-if="loadingInterviews" class="loading">Loading...</div>
             <div v-else-if="nextInterview" class="interview-detail">
@@ -197,15 +185,6 @@
                 </div>
                 <div class="progress-bar">
                   <div class="progress-fill red" :style="{ width: missingPercent + '%' }"></div>
-                </div>
-              </div>
-              <div class="progress-item">
-                <div class="progress-label">
-                  <span>Expiring Soon</span>
-                  <span class="orange-text">{{ expiringPercent }}%</span>
-                </div>
-                <div class="progress-bar">
-                  <div class="progress-fill orange" :style="{ width: expiringPercent + '%' }"></div>
                 </div>
               </div>
             </div>
@@ -303,18 +282,15 @@ const filteredRequirements = computed(() =>
 
 const submitted = computed(() => requirements.value.filter(r => r.status === 'submitted').length)
 const missing = computed(() => requirements.value.filter(r => r.status === 'missing').length)
-const expiring = computed(() => requirements.value.filter(r => r.status === 'expiring_soon').length)
 const interviewCount = computed(() => interviews.value.filter(i => i.status === 'scheduled').length)
 const nextInterview = computed(() => interviews.value.find(i => i.status === 'scheduled') || null)
 
 const total = computed(() => requirements.value.length || 1)
 const submittedPercent = computed(() => Math.round((submitted.value / total.value) * 100))
 const missingPercent = computed(() => Math.round((missing.value / total.value) * 100))
-const expiringPercent = computed(() => Math.round((expiring.value / total.value) * 100))
 
 function formatStatus(s) {
   if (s === 'submitted') return 'Submitted'
-  if (s === 'expiring_soon') return 'Expiring Soon'
   return 'Missing'
 }
 
@@ -333,7 +309,6 @@ function handleOutsideClick(e) {
 function toggleMenu() { menuOpen.value = !menuOpen.value }
 function goToSettings() { menuOpen.value = false; router.push('/settings') }
 function changeLanguage() { menuOpen.value = false; alert('Language options coming soon!') }
-function goToRequirements() { router.push('/requirements') }
 function goToInterviews() { router.push('/interviews') }
 
 function logout() {
@@ -419,10 +394,11 @@ nav { display: flex; flex-direction: column; gap: 2px; }
 }
 .search-wrap input { border: none; outline: none; background: transparent; font-size: 0.9rem; width: 100%; }
 
-.topbar-right { display: flex; align-items: center; gap: 12px; }
-.icon-btn { background: #f5f5f5; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 1rem; }
+.topbar-right { display: flex; align-items: center; gap: 16px; justify-content: flex-end; }
+.icon-btn { background: #f5f5f5; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1rem; transition: background 0.2s; display: flex; align-items: center; justify-content: center; }
+.icon-btn:hover { background: #e8e8e8; }
 
-.top-user { display: flex; align-items: center; gap: 8px; }
+.top-user { display: flex; align-items: center; gap: 12px; }
 
 /* AVATAR */
 .avatar {
@@ -456,19 +432,19 @@ nav { display: flex; flex-direction: column; gap: 2px; }
 
 .content { flex: 1; overflow-y: auto; padding: 1.5rem; }
 
-.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
-.page-header h1 { font-size: 1.6rem; font-weight: 800; color: #1a1a2e; }
-.page-sub { color: #888; font-size: 0.88rem; margin-top: 4px; }
-.header-btns { display: flex; gap: 10px; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 2rem; }
+.page-header > div:first-child { flex: 1; }
+.page-header h1 { font-size: 1.8rem; font-weight: 800; color: #1a1a2e; margin: 0; }
+.page-sub { color: #888; font-size: 0.88rem; margin-top: 6px; }
 
-.btn-primary { padding: 9px 18px; background: #1a7a5e; color: white; border: none; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.btn-primary { padding: 10px 22px; background: #1a7a5e; color: white; border: none; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
 .btn-primary:hover { background: #155f49; }
 .btn-primary.full { width: 100%; margin-top: 1rem; padding: 11px; }
-.btn-outline { padding: 9px 18px; background: white; color: #1a7a5e; border: 1.5px solid #1a7a5e; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; }
+.btn-outline { padding: 10px 22px; background: white; color: #1a7a5e; border: 1.5px solid #1a7a5e; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
 .btn-outline:hover { background: #f0faf6; }
 
 /* STAT CARDS */
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-bottom: 2rem; }
 
 .stat-card {
   background: white; border-radius: 12px; padding: 1.2rem;
@@ -488,22 +464,22 @@ nav { display: flex; flex-direction: column; gap: 2px; }
 .stat-note { font-size: 0.75rem; color: #aaa; }
 
 /* BOTTOM GRID */
-.bottom-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+.bottom-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.2rem; }
 
-.card { background: white; border-radius: 12px; padding: 1.2rem; border: 1px solid #eee; }
-.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-.card-header h2 { font-size: 1rem; font-weight: 700; color: #1a1a2e; }
-.see-all { font-size: 0.8rem; color: #1a7a5e; text-decoration: none; font-weight: 500; }
+.card { background: white; border-radius: 12px; padding: 1.5rem; border: 1px solid #eee; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; }
+.card-header h2 { font-size: 1.05rem; font-weight: 700; color: #1a1a2e; margin: 0; }
+.see-all { font-size: 0.82rem; color: #1a7a5e; text-decoration: none; font-weight: 500; cursor: pointer; }
 .see-all:hover { text-decoration: underline; }
 
 /* REQ LIST */
-.req-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-.req-item { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; }
-.req-name { flex: 1; color: #333; }
+.req-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.req-item { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; padding: 8px 0; }
+.req-icon { font-size: 1.1rem; }
+.req-name { flex: 1; color: #333; font-weight: 500; }
 .badge { font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
 .badge.submitted { background: #e8f5e9; color: #1a7a5e; }
 .badge.missing { background: #fde8e8; color: #c0392b; }
-.badge.expiring_soon { background: #fef3e2; color: #e67e22; }
 .badge.scheduled { background: #e8f4fd; color: #2980b9; }
 
 /* INTERVIEW */
@@ -532,6 +508,6 @@ nav { display: flex; flex-direction: column; gap: 2px; }
 .donut-pct { font-size: 1.3rem; font-weight: 800; color: #1a7a5e; }
 .donut-sub { font-size: 0.7rem; color: #aaa; }
 
-.loading { text-align: center; color: #aaa; font-size: 0.88rem; padding: 1rem; }
-.empty { text-align: center; color: #bbb; font-size: 0.85rem; padding: 1rem; }
+.loading { text-align: center; color: #aaa; font-size: 0.88rem; padding: 2rem 1rem; }
+.empty { text-align: center; color: #bbb; font-size: 0.85rem; padding: 2rem 1rem; }
 </style>

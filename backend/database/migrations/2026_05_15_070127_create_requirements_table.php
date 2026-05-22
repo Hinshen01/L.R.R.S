@@ -15,8 +15,8 @@ return new class extends Migration
     $table->id();
     $table->foreignId('applicant_id')->constrained()->onDelete('cascade');
     $table->string('document_name');
-    $table->enum('status', ['submitted', 'missing', 'expiring_soon'])->default('missing');
-    $table->date('expiration_date')->nullable();
+    $table->enum('status', ['submitted', 'missing'])->default('missing');
+    $table->string('file_path')->nullable();
     $table->timestamps();
 });
     }
